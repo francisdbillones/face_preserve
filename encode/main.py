@@ -35,7 +35,7 @@ helper = lambda obj: print("DEBUG:", obj) or obj
 # helper = lambda obj: obj
 
 parser = argparse.ArgumentParser(
-    description="Example streaming ffmpeg numpy processing"
+    description="FacePreserve: Selective Compression for Video Calls"
 )
 parser.add_argument("in_filename", help="Input filename")
 parser.add_argument("out_filename", help="Output filename")
@@ -45,6 +45,18 @@ parser.add_argument(
     help="Type of selective compression",
     choices=["faceshortrange", "facelongrange", "fullbody"],
     default="faceshortrange",
+)
+parser.add_argument(
+    "--base_crf",
+    help="CRF for non-ROI",
+    type=int,
+    default=NON_ROI_CRF,
+)
+parser.add_argument(
+    "--roi_crf",
+    help="CRF for ROI",
+    type=int,
+    default=ROI_CRF,
 )
 
 
@@ -60,6 +72,8 @@ def ffmpeg_video_to_rgb24_process(in_filename):
 def ffmpeg_add_bboxes_process(
     in_filename: str,
     out_filename: str,
+    base_crf: int,
+    roi_crf: int,
     bboxes: List[BBox],
     update_freq: int,
     in_video_info: VideoInfo,
@@ -77,7 +91,7 @@ def ffmpeg_add_bboxes_process(
                         end=(i + 1) * update_freq / true_video_fps,
                     ).filter("setpts", "PTS-STARTPTS"),
                     bboxes[helper(min(len(bboxes) - 1, i))],
-                    (ROI_CRF - NON_ROI_CRF) / 51,  # calculate qoffset
+                    (roi_crf - base_crf) / 51,  # calculate qoffset
                 )
                 for i in range(int(duration_s * true_video_fps / update_freq))
             )
@@ -86,7 +100,7 @@ def ffmpeg_add_bboxes_process(
             out_filename,
             pix_fmt="yuv420p",
             vcodec=CODEC,
-            crf=NON_ROI_CRF,
+            crf=base_crf,
             preset=PRESET,
         )
         .compile(
@@ -115,6 +129,12 @@ def run(
     in_filename = args.in_filename
     out_filename = args.out_filename
     selective_type = args.selective_type
+    roi_crf = args.roi_crf
+    base_crf = args.base_crf
+
+    assert roi_crf < base_crf
+    assert 0 <= base_crf <= 51
+    assert 0 <= roi_crf <= 51
 
     assert selective_type in ["faceshortrange", "facelongrange", "fullbody"]
     if selective_type == "faceshortrange":
@@ -159,7 +179,7 @@ def run(
                 bboxes.append(model.detect(in_frame))
 
     add_bboxes_process = ffmpeg_add_bboxes_process(
-        in_filename, out_filename, bboxes, update_freq, video_info
+        in_filename, out_filename, base_crf, roi_crf, bboxes, update_freq, video_info
     )
 
     video_to_rgb24_process.wait()
