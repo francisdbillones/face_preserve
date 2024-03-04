@@ -33,13 +33,13 @@ from constants import (
 helper = lambda obj: obj
 
 
-def ffmpeg_video_to_rgb24_process(in_filename):
+def ffmpeg_video_to_rgb24_process(in_filename, pipe=subprocess.PIPE):
     args = (
         ffmpeg.input(in_filename)
         .output("pipe:", format="rawvideo", pix_fmt="rgb24")
         .compile()
     )
-    return subprocess.Popen(args, stdout=subprocess.PIPE)
+    return subprocess.Popen(args, stdout=pipe)
 
 
 def ffmpeg_add_bboxes_process(
@@ -103,11 +103,11 @@ def run(
     out_filename: str,
     selective_type: str,
     roi_crf: int,
-    base_crf: int,
+    decayed_crf: int,
     drawbox: bool,
 ):
-    assert roi_crf < base_crf
-    assert 0 <= base_crf <= 51
+    assert roi_crf < decayed_crf
+    assert 0 <= decayed_crf <= 51
     assert 0 <= roi_crf <= 51
 
     assert selective_type in ["faceshortrange"]  # , "facelongrange", "fullbody"]
@@ -155,7 +155,7 @@ def run(
     add_bboxes_process = ffmpeg_add_bboxes_process(
         in_filename,
         out_filename,
-        base_crf,
+        decayed_crf,
         roi_crf,
         bboxes,
         update_freq,
