@@ -120,13 +120,13 @@ def run(
     #         options=HAARCASCADE_FACE_OPTIONS,
     #     )
 
-    elif selective_type == "fullbody":
-        hog_descriptor = cv2.HOGDescriptor()
-        hog_descriptor.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
-        model = HOGDetector(
-            hog_descriptor,
-            HOG_FULLBODY_OPTIONS,
-        )
+    # elif selective_type == "fullbody":
+    #     hog_descriptor = cv2.HOGDescriptor()
+    #     hog_descriptor.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+    #     model = HOGDetector(
+    #         hog_descriptor,
+    #         HOG_FULLBODY_OPTIONS,
+    #     )
 
     update_freq = {
         "faceshortrange": BLAZEFACE_UPDATE_FREQ,
