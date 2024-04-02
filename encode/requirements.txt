@@ -51,11 +51,13 @@ pyzmq==25.1.2
 six==1.16.0
 sounddevice==0.4.6
 stack-data==0.6.3
+tomli==2.0.1
 tornado==6.4
 tqdm==4.66.2
 traitlets==5.14.1
 typing_extensions==4.9.0
 tzdata==2024.1
+vulture==2.11
 wcwidth==0.2.13
 XlsxWriter==3.2.0
 zipp==3.17.0
